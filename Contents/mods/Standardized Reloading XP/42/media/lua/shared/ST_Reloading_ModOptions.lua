@@ -69,6 +69,7 @@ function modOptions.init()
 		defaultItem=1
 		description="reduction_guns_wo_mags_description"
 	}
+	modOptions.ComboBoxReductionGunsWOMags = ComboBoxReductionGunsWOMags
 end
 
 return modOptions
