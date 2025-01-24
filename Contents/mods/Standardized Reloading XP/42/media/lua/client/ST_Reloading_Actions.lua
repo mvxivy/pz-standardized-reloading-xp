@@ -5,6 +5,7 @@
 --*******************************************************************************
 
 local modOptions = require("ST_Reloading_ModOptions")
+modOptions.init()
 
 --Xp rewards are divided by 4 for actual xp values, so 1 turns into 1/4, or 0.25xp.
 local xpReward = {1,2,3,4,6,8,12,20,40};
