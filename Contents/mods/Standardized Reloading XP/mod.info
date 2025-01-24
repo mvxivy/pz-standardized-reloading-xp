@@ -1,0 +1,5 @@
+name=Standardized Reloading XP
+poster=poster.png
+id=STRELOAD
+description=Standardized Reloading XP
+require=modoptions
