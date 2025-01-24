@@ -1,0 +1,4 @@
+UI_RU = {
+  UI_options_STRELOAD_B42_multiplier_label = "Множитель опыта",
+  UI_options_STRELOAD_B42_multiplier_description = "Множитель опыта для навыка прицеливания, все варианты убрали снижение опыта после 5-го уровня"
+}

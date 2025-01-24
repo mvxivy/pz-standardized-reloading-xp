@@ -1,0 +1,10 @@
+UI_EN = {
+  UI_options_STRELOAD_B42_reward_label = "Xp reward (Clips and Magazines)",
+  UI_options_STRELOAD_B42_reward_description = "Xp gained each time you pass the 1 in X chance. (Clips and Mags). Vanilla lvl 0-4 - 1.0xp, vanilla lvl 5-10 - 0.25xp",
+  UI_options_STRELOAD_B42_chance_label = "Xp chance (Clips and Magazines)",
+  UI_options_STRELOAD_B42_chance_description = "Chance to get xp reward, one in X (1/X), each bullet loaded. Setting 1/1 means xp always rewarded, 1/2 means xp rewarded half the time, etc. (Clips and Mags). Vanilla lvl 0-4 - 1/2, vanilla lvl 5-10 - 1/5",
+  UI_options_STRELOAD_B42_reduction_label = "XP Reduction at lvl 5+ (Clips and Magazines)",
+  UI_options_STRELOAD_B42_reduction_description = "Vanilla game is set to 'Yes'.  This lowers your xp gains from pistol clips and rifle magazines when you hit Reloading level 5 or beyond.",
+  UI_options_STRELOAD_B42_reduction_item_yes = "Yes. Keep the vanilla XP reduction. (Clips and Mags)",
+  UI_options_STRELOAD_B42_reduction_item_no = "No. Remove the vanilla XP reduction. (Clips and Mags)"
+}
