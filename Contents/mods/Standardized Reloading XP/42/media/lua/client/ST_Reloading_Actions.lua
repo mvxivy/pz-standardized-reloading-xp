@@ -1,14 +1,11 @@
---****************************************************************************************************************
---**		Code made By: 			Conqueror Koala																**
---**		Mod:					Standardized Reloading XP													**
---**																											**		
---**		Information:			You can alter my changes however you like, and use them in your own stuff	**
---**								with no problem.  Don't worry about crediting me, however, you may want		**
---**					 			to credit the PZ team for their original code if that is what you are using **
---****************************************************************************************************************
+--*******************************************************************************
+--**		Code made By:	Conqueror Koala, MaxIvy																									 **
+--**		Mod: Standardized Reloading XP															 					 **
+--** 		Date: 24-01-2025																									 		 **
+--*******************************************************************************
 
+local modOptions = require("ST_Reloading_ModOptions")
 
-local SETTINGS = StandardizedReloadingXP_global.SETTINGS
 --Xp rewards are divided by 4 for actual xp values, so 1 turns into 1/4, or 0.25xp.
 local xpReward = {1,2,3,4,6,8,12,20,40};
 --				0.25xp, 0.5xp, 0.75xp, 1xp, ... 10xp
@@ -19,21 +16,25 @@ local xpChance = {1,2,3,4,5,6,7,8,9,10};
 -- Whether the use wants to keep the vanilla xp nerf at level 5 and above.
 local xpNerf = {true,false};
 --Xp rewards are divided by 4 for actual xp values, so 1 turns into 1/4, or 0.25xp.
-local xpRewards = {1,2,3,4,6,8,12,20,40};
+local xpRewardForGunsWOMags = {1,2,3,4,6,8,12,20,40};
 --				0.25xp, 0.5xp, 0.75xp, 1xp, ... 10xp
 --Chance to get XP, one in X chance
-local xpChances = {1,2,3,4,5,6,7,8,9,10};
+local xpChanceForGunsWOMags = {1,2,3,4,5,6,7,8,9,10};
 -- one in one (1/1) = always
 -- one in two (1/2) half the time, one in ten (1/10) one tenth of the time, etc.
 -- Whether the use wants to keep the vanilla xp nerf at level 5 and above.
-local xpNerfs = {true,false};
+local xpNerfForGunsWOMags = {true,false};
 
 function ISReloadWeaponAction:animEvent(event, parameter)
 	if event == 'loadFinished' then
 		self:loadAmmo();
-		local chance = xpChances[tonumber(SETTINGS.options.dropdown5)];
-		local xp = xpRewards[tonumber(SETTINGS.options.dropdown4)];
-		if ((xpNerfs[tonumber(SETTINGS.options.dropdown6)]) and (self.character:getPerkLevel(Perks.Reloading) > 4)) then
+		local chance = xpChanceForGunsWOMags[tonumber(modOptions.ComboBoxChanceGunsWOMags:getValue())]
+		local xp = xpRewardForGunsWOMags[tonumber(modOptions.ComboBoxRewardGunsWOMags:getValue())]
+
+		local isNerfed = xpNerfForGunsWOMags[tonumber(modOptions.ComboBoxReductionGunsWOMags:getValue())]
+
+		if (isNerfed and (self.character:getPerkLevel(Perks.Reloading) > 4)) 
+		then
 			chance = 3;
 			xp = 1;
 		end
@@ -77,9 +78,12 @@ function ISLoadBulletsInMagazine:animEvent(event, parameter)
 			-- Fix for looping animation events arriving after loading finished.
 			return
 		end
-		local chance = xpChance[tonumber(SETTINGS.options.dropdown2)];
-		local xp = xpReward[tonumber(SETTINGS.options.dropdown1)];
-		if ((xpNerf[tonumber(SETTINGS.options.dropdown3)]) and (self.character:getPerkLevel(Perks.Reloading) > 4)) then
+		local chance = xpChance[tonumber(modOptions.ComboBoxChance:getValue())];
+		local xp = xpReward[tonumber(modOptions.ComboBoxReward:getValue())];
+
+		local isNerfed = xpNerf[tonumber(modOptions.ComboBoxReduction:getValue())];
+
+		if (isNerfed and (self.character:getPerkLevel(Perks.Reloading) > 4)) then
 			chance = 5;
 			xp = 1;
 		end
