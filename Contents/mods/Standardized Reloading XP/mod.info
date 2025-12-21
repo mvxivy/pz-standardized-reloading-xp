@@ -1,5 +1,9 @@
-name=Standardized Reloading XP
-poster=poster.png
 id=STRELOAD_B42
-description=Standardized Reloading XP
-require=modoptions
+name=Standardized Reloading XP
+description=Standardized Reloading XP for 42 Build
+author=MaxIvy
+poster=poster.png
+icon=icon.png
+modversion=1.0.1
+pzversion=42
+versionMin=42.0.0

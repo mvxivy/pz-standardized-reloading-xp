@@ -1,9 +1,3 @@
---*******************************************************************************
---**		Code made By:	Conqueror Koala, MaxIvy																									 **
---**		Mod: Standardized Reloading XP															 					 **
---** 		Date: 24-01-2025																									 		 **
---*******************************************************************************
-
 local modOptions = require("ST_Reloading_ModOptions")
 modOptions.init()
 
@@ -25,6 +19,87 @@ local xpChanceForGunsWOMags = {1,2,3,4,5,6,7,8,9,10};
 -- one in two (1/2) half the time, one in ten (1/10) one tenth of the time, etc.
 -- Whether the use wants to keep the vanilla xp nerf at level 5 and above.
 local xpNerfForGunsWOMags = {true,false};
+
+-- Build 42.13+: Magazine:getAmmoType() returns an AmmoType object, while older builds used a string.
+-- ItemContainer:RemoveOneOf(...) no longer accepts AmmoType objects (and may be replaced by RemoveOneOfType).
+local function normalizeFullType(s)
+	if not s or s == "" then return nil end
+	if s:find("%.") then return s end
+	local mod, name = s:match("^([%w_]+):([%w_]+)$")
+	if mod and name then
+		mod = mod:gsub("^%l", string.upper)
+		return mod .. "." .. name
+	end
+	-- If it's a bare type id, assume Base.
+	if s:match("^[%w_]+$") then
+		return "Base." .. s
+	end
+	return s
+end
+
+-- In B42.13+, AmmoType has getItemKey() which points at the actual inventory item type (e.g. Base.Bullets9mm, Base.556Bullets).
+local function ammoTypeToItemKey(ammoType)
+	if type(ammoType) == "string" then
+		return ammoType
+	end
+	if ammoType and ammoType.getItemKey then
+		local ok, key = pcall(function() return ammoType:getItemKey() end)
+		if ok then return key end
+	end
+	-- Fallbacks for older/unknown objects.
+	if ammoType and ammoType.getName then
+		local ok, name = pcall(function() return ammoType:getName() end)
+		if ok then return name end
+	end
+	if ammoType and ammoType.getFullType then
+		local ok, ft = pcall(function() return ammoType:getFullType() end)
+		if ok then return ft end
+	end
+	if ammoType and ammoType.getType then
+		local ok, t = pcall(function() return ammoType:getType() end)
+		if ok then return t end
+	end
+	return tostring(ammoType)
+end
+
+local function removeOneAmmoFromInventory(inv, ammoType)
+	if not inv then return false end
+
+	local key = normalizeFullType(ammoTypeToItemKey(ammoType))
+	if not key or key == "" then return false end
+
+	-- Make sure we won't remove twice: only attempt if it exists (recursively).
+	local has = false
+	if inv.contains then
+		local ok, res = pcall(function() return inv:contains(key, true) end)
+		if ok then
+			has = res and true or false
+		else
+			ok, res = pcall(function() return inv:contains(key) end)
+			has = ok and (res and true or false) or false
+		end
+	elseif inv.getItemFromType then
+		local ok, item = pcall(function() return inv:getItemFromType(key) end)
+		has = ok and item ~= nil
+	end
+	if not has then return false end
+
+	-- Use the native API (supports recursive search via the boolean parameter).
+	if inv.RemoveOneOf then
+		local ok = pcall(function() inv:RemoveOneOf(key, true) end)
+		if ok then return true end
+		ok = pcall(function() inv:RemoveOneOf(key) end)
+		if ok then return true end
+	end
+
+	-- Fallbacks (should be rare).
+	if inv.RemoveOneOfType then
+		local ok = pcall(function() inv:RemoveOneOfType(key) end)
+		if ok then return true end
+	end
+
+	return false
+end
 
 function ISReloadWeaponAction:animEvent(event, parameter)
 	if event == 'loadFinished' then
@@ -91,8 +166,10 @@ function ISLoadBulletsInMagazine:animEvent(event, parameter)
 		if ZombRand(chance) == 0 then
 			self.character:getXp():AddXP(Perks.Reloading, xp);
 		end
-		self.character:getInventory():RemoveOneOf(self.magazine:getAmmoType());
-		self.magazine:setCurrentAmmoCount(self.magazine:getCurrentAmmoCount() + 1);
+		local inv = self.character:getInventory()
+		if removeOneAmmoFromInventory(inv, self.magazine:getAmmoType()) then
+			self.magazine:setCurrentAmmoCount(self.magazine:getCurrentAmmoCount() + 1);
+		end
 	elseif event == 'loadFinished' then
 		if self:isLoadFinished() then
 			self.loadFinished = true
