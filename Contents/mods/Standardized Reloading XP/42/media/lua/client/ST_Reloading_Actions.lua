@@ -101,8 +101,13 @@ local function removeOneAmmoFromInventory(inv, ammoType)
 	return false
 end
 
+local _baseISReloadWeaponActionAnimEvent = ISReloadWeaponAction.animEvent
+local _baseISLoadBulletsInMagazineAnimEvent = ISLoadBulletsInMagazine.animEvent
+
 function ISReloadWeaponAction:animEvent(event, parameter)
+	local handled = false
 	if event == 'loadFinished' then
+		handled = true
 		self:loadAmmo();
 		local chance = xpChanceForGunsWOMags[tonumber(modOptions.ComboBoxChanceGunsWOMags:getValue())]
 		local xp = xpRewardForGunsWOMags[tonumber(modOptions.ComboBoxRewardGunsWOMags:getValue())]
@@ -119,6 +124,7 @@ function ISReloadWeaponAction:animEvent(event, parameter)
 		end
 	end
 	if event == 'playReloadSound' then
+		handled = true
 		if parameter == 'load' then
 			if self.gun:getInsertAmmoSound() and self.gun:getCurrentAmmoCount() < self.gun:getMaxAmmo() then
 				self.character:playSound(self.gun:getInsertAmmoSound());
@@ -131,6 +137,7 @@ function ISReloadWeaponAction:animEvent(event, parameter)
 		end
 	end
 	if event == 'changeWeaponSprite' then
+		handled = true
 		if parameter and parameter ~= '' then
 			if parameter ~= 'original' then
 				self:setOverrideHandModels(parameter, nil)
@@ -139,21 +146,38 @@ function ISReloadWeaponAction:animEvent(event, parameter)
 			end
 		end
 	end
+	if not handled then
+		if _baseISReloadWeaponActionAnimEvent then
+			return _baseISReloadWeaponActionAnimEvent(self, event, parameter)
+		end
+	end
 end
 
 function ISLoadBulletsInMagazine:animEvent(event, parameter)
+	local handled = false
 	if event == 'InsertBulletSound' then
+		handled = true
 		if self:isLoadFinished() then
 			-- Fix for looping animation events arriving after loading finished.
 			-- That's why 'PlaySound' isn't used instead.
 			return
 		end
+		if self.isLocal and self:isLocal() and self.loadedThisLoop then
+			-- B42.17: avoid duplicate sound/event processing inside one anim loop.
+			return
+		end
 		self.character:playSound(parameter);
 	elseif event == 'InsertBullet' then
+		handled = true
 		if self:isLoadFinished() then
 			-- Fix for looping animation events arriving after loading finished.
 			return
 		end
+		if self.isLocal and self:isLocal() and self.loadedThisLoop then
+			-- B42.17: loop can emit InsertBullet multiple times; process once per loop.
+			return
+		end
+		self.loadedThisLoop = true
 		local chance = xpChance[tonumber(modOptions.ComboBoxChance:getValue())];
 		local xp = xpReward[tonumber(modOptions.ComboBoxReward:getValue())];
 
@@ -171,15 +195,23 @@ function ISLoadBulletsInMagazine:animEvent(event, parameter)
 			self.magazine:setCurrentAmmoCount(self.magazine:getCurrentAmmoCount() + 1);
 		end
 	elseif event == 'loadFinished' then
+		handled = true
 		if self:isLoadFinished() then
 			self.loadFinished = true
+			self.loadedThisLoop = false
 		end
 	elseif event == 'playReloadSound' then
+		handled = true
 		if parameter == 'insertAmmoStart' then
 			if not self.playedInsertAmmoStartSound and self.magazine:getInsertAmmoStartSound() then
 				self.playedInsertAmmoStartSound = true;
 				self.character:playSound(self.gun:getInsertAmmoStartSound());
 			end
+		end
+	end
+	if not handled then
+		if _baseISLoadBulletsInMagazineAnimEvent then
+			return _baseISLoadBulletsInMagazineAnimEvent(self, event, parameter)
 		end
 	end
 end
